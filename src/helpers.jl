@@ -47,8 +47,8 @@ struct Request
     function Request(token::Token, url, maxtries = nothing, sleeptime = 600)
         tokenprotector!(token)
         @assert sleeptime >= 0 "sleeptime cannot be negative"
-        @assert maxtries > 0 "maxtries must be positive"
         maxtries === nothing && (maxtries = token.maxtries)
+        @assert maxtries > 0 "maxtries must be positive"
         return new(token, url, maxtries, sleeptime)
     end # fun
 end # struct
