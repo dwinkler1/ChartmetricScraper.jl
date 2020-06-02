@@ -66,7 +66,7 @@ end
 
 function playlistrequest(token::Token, variable, maxtries = 5;
             id = nothing, platform = nothing, type = nothing, span = nothing,
-            parameters::Vector{String})
+            parameters::Vector{String} = [""])
             allowedvars = ["metadata", "playlist-evolution", "journey-progression", "lists", "snapshot", "stats", "tracks"]
             variable = lowercase(variable)
             variable ∈ allowedvars || @warn "Variable is unknown. Trying to parse..."
@@ -103,7 +103,7 @@ function playlistrequest(token::Token, variable, maxtries = 5;
                 vars_all = [platform, id, span, variable, type]
                 vars_provided = vars_all[vars_all .!== nothing]
                 append!(url, vars_provided)
-                println(string("Parsed URL: ", buildrequest(url, parameters)))
+                println(string("Parsed URL: ", buildrequesturl(url, parameters)))
             end
             url_req = buildrequesturl(url)
             req = Request(token, url_req, maxtries)

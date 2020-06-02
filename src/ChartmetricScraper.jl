@@ -13,14 +13,15 @@ export Token,
     Request,
     dorequest,
     parseresponse,
-    offsetparser,
     getparameters,
-    setparameters!
+    setparameters!,
+    writestate
 
 #debug exports
-export buildrequest
+export buildrequesturl
 
-
+include("token.jl")
+include("request.jl")
 include("helpers.jl")
-include("requests.jl")
+include("requests_helpers.jl")
 end # module

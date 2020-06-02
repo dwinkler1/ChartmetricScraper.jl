@@ -1,115 +1,7 @@
 
-mutable struct Token
-    token::String
-    expires::DateTime
-    scope::String
-    refreshtoken::String
-    maxtries::Int
+function readstate!()
+# TODO
 end
-
-"""
-    Token(refreshtoken::String)
-
-Returns a `Token` that can be used for requests.
-
-# Arguments:
-- `refreshtoken` : Refreshtoken associated with your Chartmetric account.
-"""
-function Token(refreshtoken::String,  maxtries::Int = 5)
-    @assert maxtries > 0 "maxtries have to be positive"
-    token_dict, expires = tokenrequest(refreshtoken, maxtries)
-    return Token(token_dict["token"],
-                expires,
-                token_dict["scope"],
-                token_dict["refresh_token"],
-                maxtries)
-end
-
-
-"""
-    Request(token::Token, url::String[, maxtries::Int, sleeptime::Number, state::Dict])
-    Request(refreshtoken::String, url::String[, maxtries::Int, sleeptime::Number])
-
-Creates a `Request` to be used with `dorequest(...)`
-
-# Arguments:
-- `token` : the request `Token`
-- `url` : Chartmetric URL to be requested
-- [`maxtries`] : maximum number of tries to get the request (default = `token.maxtries`)
-- [`sleeptime`] : Time to wait after server error in seconds (default = 600)
-- [`state`] : Metadata for a request. Allows multiple requests of the same variable with different offset.
-- `refreshtoken` : Chartmetric refreshtoken associated with your account
-"""
-mutable struct Request
-    token::Token
-    url::String
-    maxtries::Int
-    sleeptime::Number
-    state::Dict
-    function Request(token::Token, url, maxtries = nothing, sleeptime::Number = 600, state = Dict())
-        tokenprotector!(token)
-        @assert sleeptime >= 0 "sleeptime cannot be negative"
-        maxtries === nothing && (maxtries = token.maxtries)
-        @assert maxtries > 0 "maxtries must be positive"
-
-        return new(token, url, maxtries, sleeptime, state)
-    end # fun
-end # struct
-
-Request(refreshtoken::String, url, maxtries = nothing, sleeptime = 600, state = Dict()) = Request(Token(refreshtoken), url, maxtries, sleeptime. state)
-
-# Exported
-
-"""
-    newtoken!(token::Token)
-
-Refreshes an existing request `Token`
-
-# Arguments:
-- `token` : the request `Token`
-"""
-function newtoken!(token::Token)
-    token_dict, expires = tokenrequest(token.refreshtoken, token.maxtries)
-    token.token = token_dict["token"]
-    token.expires = expires
-    token.scope = token_dict["scope"]
-    return token
-end
-
-"""
-    dorequest(request::Request)
-
-Run the request using a `Request` object
-
-# Arguments:
-- `request` : the `Request` object
-"""
-
-function dorequest(request::Request)
-    tokenprotector!(request.token)
-    token = request.token
-    url = request.url
-    maxtries = request.maxtries
-    header = ["Authorization" => string("Bearer ", token.token)]
-    req = :(HTTP.request("GET",
-                $url, $header, status_exception = false))
-    resp = eval(req)
-    code = requestprotector(resp, token)
-    if code ∉ 200:399
-        for i ∈ 1:(maxtries-1)
-            resp = eval(req)
-            code = requestprotector(resp, token)
-            code ∈ 200:399 && break
-            if i == (maxtries-1)
-                @warn "Error getting request"
-                println(resp)
-            end # if
-        end # for
-    end # if
-    return resp
-end # fun
-
-readstate!()
 
 function parseresponse(response::HTTP.Messages.Response)
     bod = response.body
@@ -127,35 +19,12 @@ function flattenlists!(responsedict)
     end
 end
 
-function getparameters(request::Request)
-    url = request.url
-    !occursin(r"\?", url) && return String[]
-    paramstring = match(r"(?<=\?).*", url)
-    params = split(paramstring.match, '&')
-    return params
-end
-
-function setparameters!(request::Request, parameters::Array{String,1}; add::Bool = false)
-    url_old = request.url
-    add && append!(parameters, getparameters(request))
-    parameters = replace.(parameters, r"\s+" => "")
-    paramstring = join(parameters, '&')
-    if occursin(r"\?", url_old)
-        url_base = match(r".*(?=\?)", url_old).match
-        url_new = url_base * '?' * paramstring
-    else
-        url_new = url_old * '?' * paramstring
-    end
-    request.url = url_new
-    return request
-end
-
 
 
 # Not exported
 function buildrequesturl(url)
     base = "https://api.chartmetric.com/api/"
-    urls = join(url, "/")
+    urls = join(url, '/')
     url_req =  base * urls
     return url_req
 end
@@ -187,34 +56,6 @@ function ratelimitprotect(response::HTTP.Messages.Response)
         sleep((sleepfor + 5))
     end
     return nothing
-end
-
-function tokenprotector!(token::Token)
-    token.expires <= (Dates.now() + Dates.Minute(1)) && newtoken!(token)
-    return token
-end
-
-function tokenrequest(refreshtoken::String, maxtries = 5)
-    header = ["Content-Type" => "application/json"]
-    body = """{"refreshtoken":"$refreshtoken"}"""
-    time = Dates.now()
-    req = :(HTTP.request("POST",
-            "https://api.chartmetric.com/api/token",
-            $header, $body ,
-            retry = true,
-            status_exception = false))
-    resp = eval(req)
-    if resp.status ∉ 200:399
-        for trial in 1:(maxtries-1)
-            resp = eval(req)
-            resp.status ∈ 200:399 && break
-            trial >= (maxtries - 2) && sleep(60)
-            trial >= (maxtries - 1) && @error "Could not get token"
-        end
-    end
-    token_dict = JSON.parse(String(resp.body))
-    expires = time + Dates.Second(token_dict["expires_in"])
-    return (token_dict, expires)
 end
 
 function parsecmdate(date::String)
