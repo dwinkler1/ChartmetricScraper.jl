@@ -15,7 +15,9 @@ export Token,
     parseresponse,
     getparameters,
     setparameters!,
-    writestate
+    setparameter!,
+    writestate,
+    readstate!
 
 #debug exports
 export buildrequesturl

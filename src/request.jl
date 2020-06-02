@@ -71,7 +71,7 @@ function getparameters(request::Request)
     url = request.url
     !occursin(r"\?", url) && return String[]
     paramstring = match(r"(?<=\?).*", url)
-    params = split(paramstring.match, '&')
+    params = string.(split(paramstring.match, '&'))
     return params
 end
 
@@ -109,4 +109,14 @@ function readstate!(request::Request, file)
     end
     request.state = out
     return request
+end
+
+function setparameter!(request::Request, which::String, value)
+    which = strip(which); value = strip(string(value))
+    params = getparameters(request)
+    paramnames = [match(r".*(?=\=)", param).match for param in params]
+    idx = findlast(x -> x == which, paramnames)
+    newparam = string(which, '=', value)
+    idx === nothing ? push!(params, newparam) : (params[idx] = newparam)
+    setparameters!(request, params)
 end
