@@ -13,7 +13,9 @@ export Token,
     Request,
     dorequest,
     parseresponse,
-    offsetparser
+    offsetparser,
+    getparameters,
+    setparameters!
 
 #debug exports
 export buildrequest

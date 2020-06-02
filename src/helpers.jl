@@ -27,7 +27,7 @@ end
 
 
 """
-    Request(token::Token, url::String[, maxtries::Int, sleeptime::Number])
+    Request(token::Token, url::String[, maxtries::Int, sleeptime::Number, state::Dict])
     Request(refreshtoken::String, url::String[, maxtries::Int, sleeptime::Number])
 
 Creates a `Request` to be used with `dorequest(...)`
@@ -37,23 +37,26 @@ Creates a `Request` to be used with `dorequest(...)`
 - `url` : Chartmetric URL to be requested
 - [`maxtries`] : maximum number of tries to get the request (default = `token.maxtries`)
 - [`sleeptime`] : Time to wait after server error in seconds (default = 600)
+- [`state`] : Metadata for a request. Allows multiple requests of the same variable with different offset.
 - `refreshtoken` : Chartmetric refreshtoken associated with your account
 """
-struct Request
+mutable struct Request
     token::Token
     url::String
     maxtries::Int
     sleeptime::Number
-    function Request(token::Token, url, maxtries = nothing, sleeptime = 600)
+    state::Dict
+    function Request(token::Token, url, maxtries = nothing, sleeptime::Number = 600, state = Dict())
         tokenprotector!(token)
         @assert sleeptime >= 0 "sleeptime cannot be negative"
         maxtries === nothing && (maxtries = token.maxtries)
         @assert maxtries > 0 "maxtries must be positive"
-        return new(token, url, maxtries, sleeptime)
+
+        return new(token, url, maxtries, sleeptime, state)
     end # fun
 end # struct
 
-Request(refreshtoken::String, url, maxtries, sleeptime) = Request(Token(refreshtoken), url, maxtries)
+Request(refreshtoken::String, url, maxtries = nothing, sleeptime = 600, state = Dict()) = Request(Token(refreshtoken), url, maxtries, sleeptime. state)
 
 # Exported
 
@@ -106,15 +109,7 @@ function dorequest(request::Request)
     return resp
 end # fun
 
-
-function offsetparser(parameters, from, to, limit)
-    all_parameters = []
-    for iter in from:limit:to
-        off = iter + 1
-        push!(all_parameters, vcat(parameters, ["limit=$limit", "offset=$off"]))
-    end
-    return all_parameters
-end
+readstate!()
 
 function parseresponse(response::HTTP.Messages.Response)
     bod = response.body
@@ -132,13 +127,36 @@ function flattenlists!(responsedict)
     end
 end
 
+function getparameters(request::Request)
+    url = request.url
+    !occursin(r"\?", url) && return String[]
+    paramstring = match(r"(?<=\?).*", url)
+    params = split(paramstring.match, '&')
+    return params
+end
+
+function setparameters!(request::Request, parameters::Array{String,1}; add::Bool = false)
+    url_old = request.url
+    add && append!(parameters, getparameters(request))
+    parameters = replace.(parameters, r"\s+" => "")
+    paramstring = join(parameters, '&')
+    if occursin(r"\?", url_old)
+        url_base = match(r".*(?=\?)", url_old).match
+        url_new = url_base * '?' * paramstring
+    else
+        url_new = url_old * '?' * paramstring
+    end
+    request.url = url_new
+    return request
+end
+
+
+
 # Not exported
-function buildrequest(url, parameters)
+function buildrequesturl(url)
     base = "https://api.chartmetric.com/api/"
     urls = join(url, "/")
-    parameters = parameters[parameters.!==nothing]
-    params = length(parameters) > 0 ?  '?' * join(parameters, "&") : ""
-    url_req =  base * urls * params
+    url_req =  base * urls
     return url_req
 end
 

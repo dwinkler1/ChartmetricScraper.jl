@@ -1,7 +1,7 @@
 
 function albumrequest(token::Token, variable, id, maxtries = 5;
         type=nothing, platform = nothing, status = nothing,
-        parameters::Vector)
+        parameters::Vector{String})
     allowedvars = ["charts", "get-ids", "playlists", "stats", "tracks", "tunefind", "metadata"]
     variable = lowercase(variable)
     variable ∈ allowedvars || @warn "Variable is unknown. Trying to parse..."
@@ -33,13 +33,14 @@ function albumrequest(token::Token, variable, id, maxtries = 5;
         append!(url, vars_provided)
         println(string("Parsed URL: ", buildrequest(url, parameters)))
     end
-    url_req = buildrequest(url, parameters)
+    url_req = buildrequesturl(url)
     req = Request(token, url_req, maxtries)
+    setparameters!(req, parameters)
     return req
 end
 
 function curatorrequest(token::Token, variable, maxtries = 5;
-            platform = nothing, id = nothing, parameters::Vector = [nothing])
+            platform = nothing, id = nothing, parameters::Vector{String})
             # TODO input checks
             @assert platform !== nothing
             url = ["curator"]
@@ -57,14 +58,15 @@ function curatorrequest(token::Token, variable, maxtries = 5;
                 append!(url, vars_provided)
                 println(string("Parsed URL: ", buildrequest(url, parameters)))
             end
-            url_req = buildrequest(url, parameters)
+            url_req = buildrequesturl(url)
             req = Request(token, url_req, maxtries)
+            setparameters!(req, parameters)
             return req
 end
 
 function playlistrequest(token::Token, variable, maxtries = 5;
             id = nothing, platform = nothing, type = nothing, span = nothing,
-            parameters::Vector)
+            parameters::Vector{String})
             allowedvars = ["metadata", "playlist-evolution", "journey-progression", "lists", "snapshot", "stats", "tracks"]
             variable = lowercase(variable)
             variable ∈ allowedvars || @warn "Variable is unknown. Trying to parse..."
@@ -103,7 +105,8 @@ function playlistrequest(token::Token, variable, maxtries = 5;
                 append!(url, vars_provided)
                 println(string("Parsed URL: ", buildrequest(url, parameters)))
             end
-            url_req = buildrequest(url, parameters)
+            url_req = buildrequesturl(url)
             req = Request(token, url_req, maxtries)
+            setparameters!(req, parameters)
             return req
 end
