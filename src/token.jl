@@ -61,10 +61,11 @@ function tokenrequest(refreshtoken::String, maxtries = 5)
         for trial in 1:(maxtries-1)
             resp = eval(req)
             resp.status ∈ 200:399 && break
-            trial >= (maxtries - 2) && sleep(60)
+            trial >= (maxtries - 2) && println(resp); sleep(60)
             trial >= (maxtries - 1) && @error "Could not get token"
         end
     end
+    resp.status > 500 && return nothing
     token_dict = JSON.parse(String(resp.body))
     expires = time + Dates.Second(token_dict["expires_in"])
     return (token_dict, expires)

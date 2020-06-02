@@ -1,14 +1,18 @@
 
-function readstate!()
-# TODO
+function writeresponse(response::HTTP.Messages.Response)
+#TODO
+
 end
 
 function parseresponse(response::HTTP.Messages.Response)
     bod = response.body
-    text = JSON.parse(String(bod))
-    flattenlists!(text)
-    df = vcat([DataFrame(row) for row in text["obj"]]...)
-    return df
+    code = response.status
+    ret_dict = JSON.parse(String(bod))
+    if code ∉ 200:399
+        ret_dict["code"] = 200
+        ret_dict["url"] = response.request.target
+    end
+    return ret_dict
 end
 
 function flattenlists!(responsedict)
@@ -19,8 +23,6 @@ function flattenlists!(responsedict)
     end
 end
 
-
-
 # Not exported
 function buildrequesturl(url)
     base = "https://api.chartmetric.com/api/"
@@ -28,23 +30,6 @@ function buildrequesturl(url)
     url_req =  base * urls
     return url_req
 end
-
-function requestprotector(response::HTTP.Messages.Response,
-                        token::Token)
-    code = response.status
-
-    if code ∈ 400:499
-        ratelimitprotect(response)
-        tokenprotector!(token)
-    elseif code ∈ 500:599
-        sleeptime = token.sleeptime
-        println("Chartmetric server error. Sleeping for $sleeptime seconds")
-        sleep(sleeptime)
-    elseif code ∉ 200:399
-        ratelimitprotect(response)
-    end # if
-    return code
-end # fun
 
 function ratelimitprotect(response::HTTP.Messages.Response)
     headers = Dict(response.headers)

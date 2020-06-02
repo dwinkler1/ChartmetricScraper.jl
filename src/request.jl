@@ -52,15 +52,15 @@ function dorequest(request::Request)
     req = :(HTTP.request("GET",
                 $url, $header, status_exception = false))
     resp = eval(req)
-    code = requestprotector(resp, token)
+    code = requestprotector(resp, request)
     if code ∉ 200:399
         for i ∈ 1:(maxtries-1)
             resp = eval(req)
-            code = requestprotector(resp, token)
+            code = requestprotector(resp, request)
             code ∈ 200:399 && break
             if i == (maxtries-1)
                 @warn "Error getting request"
-                println(resp)
+                #println(resp)
             end # if
         end # for
     end # if
@@ -93,9 +93,23 @@ function setparameters!(request::Request, parameters::Array{String,1}; add::Bool
     return request
 end
 
-function writestate(request::Request, file)
-    open(file, "w+") do io
+function setparameter!(request::Request, which::String, value)
+    which = strip(which); value = strip(string(value))
+    params = getparameters(request)
+    paramnames = [match(r".*(?=\=)", param).match for param in params]
+    idx = findlast(x -> x == which, paramnames)
+    newparam = string(which, '=', value)
+    idx === nothing ? push!(params, newparam) : (params[idx] = newparam)
+    setparameters!(request, params)
+end
+
+setparameter!(request::Request, name_val::Pair) = setparameter!(request, name_val.first, name_val.second)
+
+function writestate(request::Request, file = "state.jsonl"; append = false)
+    mode = append ? "a+" : "w+"
+    open(file, mode) do io
         JSON.print(io, request.state)
+        write(io, '\n')
     end
     return file
 end
@@ -111,12 +125,19 @@ function readstate!(request::Request, file)
     return request
 end
 
-function setparameter!(request::Request, which::String, value)
-    which = strip(which); value = strip(string(value))
-    params = getparameters(request)
-    paramnames = [match(r".*(?=\=)", param).match for param in params]
-    idx = findlast(x -> x == which, paramnames)
-    newparam = string(which, '=', value)
-    idx === nothing ? push!(params, newparam) : (params[idx] = newparam)
-    setparameters!(request, params)
-end
+function requestprotector(response::HTTP.Messages.Response,
+                        request::Request)
+    code = response.status
+
+    if code ∈ 400:499
+        ratelimitprotect(response)
+        tokenprotector!(request.token)
+    elseif code ∈ 500:599
+        sleeptime = request.sleeptime
+        println("Chartmetric server error. Sleeping for $sleeptime seconds")
+        sleep(sleeptime)
+    elseif code ∉ 200:399
+        ratelimitprotect(response)
+    end # if
+    return code
+end # fun
