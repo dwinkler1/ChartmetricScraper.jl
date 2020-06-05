@@ -42,7 +42,6 @@ Run the request using a `Request` object
 # Arguments:
 - `request` : the `Request` object
 """
-
 function dorequest(request::Request)
     tokenprotector!(request.token)
     token = request.token

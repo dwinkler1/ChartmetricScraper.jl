@@ -33,9 +33,9 @@ end
 
 function ratelimitprotect(response::HTTP.Messages.Response)
     headers = Dict(response.headers)
-    remaining = parse(Int, headers["X-RateLimit-Remaining"])
+    remaining = haskey(headers, "X-RateLimit-Remaining") ? parse(Int, headers["X-RateLimit-Remaining"]) : 0
     if remaining < 1
-        resetin =  parse(Int, headers["X-RateLimit-Reset"]) - time()
+        resetin =  haskey(headers, "X-RateLimit-Reset") ? parse(Int, headers["X-RateLimit-Reset"]) - time() : 60
         sleepfor = maximum([0.1, resetin])
         println("Protecting rate limit")
         sleep((sleepfor + 5))
