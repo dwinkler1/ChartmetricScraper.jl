@@ -1,4 +1,3 @@
-
 function writeresponse(response::HTTP.Messages.Response)
 #TODO
 
@@ -9,7 +8,7 @@ function parseresponse(response::HTTP.Messages.Response)
     code = response.status
     ret_dict = JSON.parse(String(bod))
     if code ∉ 200:399
-        ret_dict["code"] = 200
+        ret_dict["code"] = code
         ret_dict["url"] = response.request.target
     end
     return ret_dict
