@@ -127,13 +127,13 @@ end
 function requestprotector(response::HTTP.Messages.Response,
                         request::Request)
     code = response.status
-
+    code != 200 && println("Code: $code")
     if code ∈ 400:499
         ratelimitprotect(response)
         tokenprotector!(request.token)
     elseif code ∈ 500:599
         sleeptime = request.sleeptime
-        println("Code $code: Chartmetric server error. Sleeping for $sleeptime seconds")
+        println("Chartmetric server error. Sleeping for $sleeptime seconds")
         sleep(sleeptime)
     elseif code ∉ 200:399
         ratelimitprotect(response)

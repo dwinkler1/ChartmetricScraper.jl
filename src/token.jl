@@ -34,6 +34,7 @@ Refreshes an existing request `Token`
 - `token` : the request `Token`
 """
 function newtoken!(token::Token)
+    println("Requesting new Token...")
     token_dict, expires = tokenrequest(token.refreshtoken, token.maxtries)
     token.token = token_dict["token"]
     token.expires = expires
