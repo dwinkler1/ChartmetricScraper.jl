@@ -129,6 +129,7 @@ function requestprotector(response::HTTP.Messages.Response,
     code = response.status
     code != 200 && println("Code: $code")
     if code ∈ 400:499
+        code == 401 && newtoken!(request.token)
         ratelimitprotect(response)
         tokenprotector!(request.token)
     elseif code ∈ 500:599
