@@ -12,3 +12,5 @@
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://danielw2904.github.io/ChartmetricScraper.jl/stable)
 [![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://danielw2904.github.io/ChartmetricScraper.jl/dev)
 -->
+
+Very much WIP but works fine. Requires an account for the [Chartmetric API](https://www.chartmetric.com/). 
