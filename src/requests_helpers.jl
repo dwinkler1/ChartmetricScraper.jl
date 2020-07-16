@@ -31,7 +31,7 @@ function albumrequest(token::Token, variable, id, maxtries = 5;
         vars_all = [id, type, platform, status, variable]
         vars_provided = vars_all[vars_all .!== nothing]
         append!(url, vars_provided)
-        println(string("Parsed URL: ", buildrequest(url, parameters)))
+        println(string("Parsed URL: ", buildrequesturl(url, parameters)))
     end
     url_req = buildrequesturl(url)
     req = Request(token, url_req, maxtries)
@@ -56,7 +56,7 @@ function curatorrequest(token::Token, variable, maxtries = 5;
                 vars_all = [platform, id, variable]
                 vars_provided = vars_all[vars_all .!== nothing]
                 append!(url, vars_provided)
-                println(string("Parsed URL: ", buildrequest(url, parameters)))
+                println(string("Parsed URL: ", buildrequesturl(url, parameters)))
             end
             url_req = buildrequesturl(url)
             req = Request(token, url_req, maxtries)
@@ -70,42 +70,42 @@ function playlistrequest(token::Token, variable, maxtries = 5;
             allowedvars = ["metadata", "playlist-evolution", "journey-progression", "lists", "snapshot", "stats", "tracks"]
             variable = lowercase(variable)
             variable ∈ allowedvars || @warn "Variable is unknown. Trying to parse..."
-            url = ["playlist"]
+            path = ["playlist"]
             if variable == "metadata"
                 @assert platform !== nothing && id !== nothing
                 id = string(id)
-                append!(url, [platform, id])
+                append!(path, [platform, id])
             elseif variable == "playlist-evolution"
                 @assert type !== nothing && id !== nothing
                 id = string(id)
-                append!(url, ["by", type, id, variable])
+                append!(path, ["by", type, id, variable])
             elseif variable == "journey-progression"
                 @assert platform !== nothing && id !== nothing && type !== nothing
                 id = string(id)
-                append!(url, [platform, id, variable, type])
+                append!(path, [platform, id, variable, type])
             elseif variable == "lists"
                 @assert platform !== nothing
-                append!(url, [platform, variable])
+                append!(path, [platform, variable])
             elseif variable == "snapshot"
                 @assert platform !== nothing && id !== nothing
                 id = string(id)
-                append!(url, [platform, id, variable])
+                append!(path, [platform, id, variable])
             elseif variable == "stats"
                 @assert platform !== nothing && id !== nothing
                 id = string(id)
-                append!(url, [platform, id, variable])
+                append!(path, [platform, id, variable])
             elseif variable == "tracks"
                 @assert platform !== nothing && id !== nothing && span !== nothing
                 id = string(id)
-                append!(url, [platform, id, span, variable])
+                append!(path, [platform, id, span, variable])
             else
                 id !== nothing && (id = string(id))
                 vars_all = [platform, id, span, variable, type]
                 vars_provided = vars_all[vars_all .!== nothing]
-                append!(url, vars_provided)
-                println(string("Parsed URL: ", buildrequesturl(url, parameters)))
+                append!(path, vars_provided)
+                println(string("Parsed URL: ", buildrequesturl(path)))
             end
-            url_req = buildrequesturl(url)
+            url_req = buildrequesturl(path)
             req = Request(token, url_req, maxtries)
             setparameters!(req, parameters)
             return req

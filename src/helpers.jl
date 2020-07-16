@@ -22,14 +22,14 @@ function flattenlists!(responsedict)
     end
 end
 
-# Not exported
-function buildrequesturl(url)
+function buildrequesturl(path)
     base = "https://api.chartmetric.com/api/"
-    urls = join(url, '/')
+    urls = join(path, '/')
     url_req =  base * urls
     return url_req
 end
 
+# Not exported
 function ratelimitprotect(response::HTTP.Messages.Response)
     headers = Dict(response.headers)
     remaining = haskey(headers, "X-RateLimit-Remaining") ? parse(Int, headers["X-RateLimit-Remaining"]) : 0
