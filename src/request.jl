@@ -41,8 +41,10 @@ Run the request using a `Request` object
 
 # Arguments:
 - `request` : the `Request` object
+- `skip404 = true` : If `true` 404 errors will not be retried
+- `verbose = false` : If `true` all unusual events (e.g. rate limit is hit) will print a message
 """
-function dorequest(request::Request)
+function dorequest(request::Request; skip404 = true, verbose = false)
     tokenprotector!(request.token)
     token = request.token
     url = request.url
@@ -51,11 +53,16 @@ function dorequest(request::Request)
     req = :(HTTP.request("GET",
                 $url, $header, status_exception = false))
     resp = eval(req)
-    code = requestprotector(resp, request)
+    code = requestprotector(resp, request, verbose = verbose)
     if code ∉ 200:399
         for i ∈ 1:(maxtries-1)
+            if skip404 && code == 404
+                @warn "404 error getting request"
+                println(getparameters(request))
+                break
+            end
             resp = eval(req)
-            code = requestprotector(resp, request)
+            code = requestprotector(resp, request, verbose = verbose)
             code ∈ 200:399 && break
             if i == (maxtries-1)
                 @warn "Error getting request"
@@ -125,9 +132,9 @@ function readstate!(request::Request, file)
 end
 
 function requestprotector(response::HTTP.Messages.Response,
-                        request::Request)
+                        request::Request; verbose = false)
     code = response.status
-    code != 200 && println("Code: $code")
+    code != 200 && verbose && println("Code: $code")
     if code ∈ 400:499
         code == 401 && newtoken!(request.token)
         ratelimitprotect(response)

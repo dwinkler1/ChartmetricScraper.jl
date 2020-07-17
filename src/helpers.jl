@@ -30,7 +30,7 @@ function buildrequesturl(path)
 end
 
 # Not exported
-function ratelimitprotect(response::HTTP.Messages.Response)
+function ratelimitprotect(response::HTTP.Messages.Response; verbose = false)
     headers = Dict(response.headers)
     remaining = haskey(headers, "X-RateLimit-Remaining") ? parse(Int, headers["X-RateLimit-Remaining"]) : 0
     if remaining < 1
