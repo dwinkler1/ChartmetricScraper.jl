@@ -58,7 +58,7 @@ function dorequest(request::Request; skip404 = true, verbose = false)
         for i ∈ 1:(maxtries-1)
             if skip404 && code == 404
                 @warn "404 error getting request"
-                println(getparameters(request))
+                println(request.url)
                 break
             end
             resp = eval(req)
@@ -137,14 +137,14 @@ function requestprotector(response::HTTP.Messages.Response,
     code != 200 && verbose && println("Code: $code")
     if code ∈ 400:499
         code == 401 && newtoken!(request.token)
-        ratelimitprotect(response)
+        ratelimitprotect(response, verbose = verbose)
         tokenprotector!(request.token)
     elseif code ∈ 500:599
         sleeptime = request.sleeptime
         println("Chartmetric server error. Sleeping for $sleeptime seconds")
         sleep(sleeptime)
     elseif code ∉ 200:399
-        ratelimitprotect(response)
+        ratelimitprotect(response, verbose = verbose)
     end # if
     return code
 end # fun
