@@ -1,8 +1,7 @@
 module ChartmetricScraper
 
 using HTTP,
-    Dates,
-    DataFrames
+    Dates
 import JSON
 
 export Token,
