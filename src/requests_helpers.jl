@@ -5,35 +5,35 @@ function albumrequest(token::Token, variable, id, maxtries = 5;
     allowedvars = ["charts", "get-ids", "playlists", "stats", "tracks", "tunefind", "metadata"]
     variable = lowercase(variable)
     variable ∈ allowedvars || @warn "Variable is unknown. Trying to parse..."
-    url = ["album"]
+    path = ["album"]
     id = string(id)
     if variable == "charts"
         required =  [id, type, variable]
-        any(x -> x == nothing, required) && @error string("Missing required argument: type")
-        append!(url, required)
-    elseif variable == "get-ids"
+        any(x -> x === nothing, required) && @error string("Missing required argument: type")
+        append!(path, required)
+    elseif variable === "get-ids"
         required = [type, id, variable]
-        any(x -> x == nothing, required) && @error string("Missing required argument: type")
-        append!(url, required)
-    elseif variable == "metadata"
-        push!(url, id)
+        any(x -> x === nothing, required) && @error string("Missing required argument: type")
+        append!(path, required)
+    elseif variable === "metadata"
+        push!(path, id)
     elseif variable == "playlists"
         required = [id, platform, status, variable]
-        any(x -> x == nothing, required) && @error string("Missing required argument(s): platform, status")
-        append!(url, required)
+        any(x -> x === nothing, required) && @error string("Missing required argument(s): platform, status")
+        append!(path, required)
     elseif variable == "stats"
         required = [id, platform, variable]
-        any(x -> x == nothing, required) && @error string("Missing required argument: platform")
-        append!(url, required)
+        any(x -> x === nothing, required) && @error string("Missing required argument: platform")
+        append!(path, required)
     elseif variable ∈ ["tracks", "tunefind"]
-        append!(url,  [id, variable])
+        append!(path,  [id, variable])
     else
         vars_all = [id, type, platform, status, variable]
         vars_provided = vars_all[vars_all .!== nothing]
-        append!(url, vars_provided)
-        println(string("Parsed URL: ", buildrequesturl(url, parameters)))
+        append!(path, vars_provided)
+        println(string("Parsed URL: ", buildrequesturl(path)))
     end
-    url_req = buildrequesturl(url)
+    url_req = buildrequesturl(path)
     req = Request(token, url_req, maxtries)
     setparameters!(req, parameters)
     return req
@@ -43,22 +43,22 @@ function curatorrequest(token::Token, variable, maxtries = 5;
             platform = nothing, id = nothing, parameters::Vector{String})
             # TODO input checks
             @assert platform !== nothing
-            url = ["curator"]
+            path = ["curator"]
             if variable == "metadata"
                 @assert id !== nothing
-                append!(url, [platform, id])
+                append!(path, [platform, id])
             elseif variable == "lists"
-                append!(url, [platform, variable])
+                append!(path, [platform, variable])
             elseif variable == "playlists"
                 @assert id !== nothing
-                append!(url, [platform, id, variable])
+                append!(path, [platform, id, variable])
             else
                 vars_all = [platform, id, variable]
                 vars_provided = vars_all[vars_all .!== nothing]
-                append!(url, vars_provided)
-                println(string("Parsed URL: ", buildrequesturl(url, parameters)))
+                append!(path, vars_provided)
+                println(string("Parsed URL: ", buildrequesturl(path)))
             end
-            url_req = buildrequesturl(url)
+            url_req = buildrequesturl(path)
             req = Request(token, url_req, maxtries)
             setparameters!(req, parameters)
             return req
