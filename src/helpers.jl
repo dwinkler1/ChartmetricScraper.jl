@@ -6,11 +6,18 @@ end
 function parseresponse(response::HTTP.Messages.Response)
     bod = response.body
     code = response.status
-    ret_dict = JSON.parse(String(bod))
     if code ∉ 200:399
+        ret_dict = Dict{String, Any}()
         ret_dict["code"] = code
         ret_dict["url"] = response.request.target
-    end
+        try
+            ret_dict["return"] = JSON.parse(String(bod))
+        catch e
+            ret_dict["return"] = missing 
+        end
+        return ret_dict
+    end   
+    ret_dict = JSON.parse(String(bod))
     return ret_dict
 end
 

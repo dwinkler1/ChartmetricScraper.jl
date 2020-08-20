@@ -19,7 +19,7 @@ mutable struct Request
     maxtries::Int
     sleeptime::Number
     state::Dict
-    function Request(token::Token, url, maxtries = nothing, sleeptime::Number = 600; state = Dict())
+    function Request(token::Token, url; maxtries = nothing, sleeptime::Number = 600, state = Dict())
         tokenprotector!(token)
         @assert sleeptime >= 0 "sleeptime cannot be negative"
         maxtries === nothing && (maxtries = token.maxtries)
@@ -29,7 +29,7 @@ mutable struct Request
     end # fun
 end # struct
 
-Request(refreshtoken::String, url, maxtries = nothing, sleeptime = 600; state = Dict()) = Request(Token(refreshtoken), url, maxtries, sleeptime, state = state)
+Request(refreshtoken::String, url; maxtries = nothing, sleeptime = 600, state = Dict()) = Request(Token(refreshtoken), url, maxtries = maxtries, sleeptime = sleeptime, state = state)
 
 # Exported
 
