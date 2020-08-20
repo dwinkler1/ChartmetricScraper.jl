@@ -73,6 +73,29 @@ function dorequest(request::Request; skip404 = true, verbose = false)
     return resp
 end # fun
 
+"""
+    getparsed(tkn, path, parameters = nothing; kwargs...)
+
+Do a full request and return a Dict of the response. Keyword arguments are passed to [Request](@ref) and are `maxtries` and `sleeptime`.
+
+# Arguments:
+- `token`: the request `Token`
+- `path`: Chartmetric API path
+- `parameters=nothing`: Chartmetric parameters of the form ["limit=100", "since=2020-01-01"] 
+- `skip404 = true` : If `true` 404 errors will not be retried
+- `verbose = false` : If `true` all unusual events (e.g. rate limit is hit) will print a message
+"""
+function getparsed(token, path, parameters = nothing, skip404 = true, verbose = false; kwargs...)
+    url = buildrequesturl(path)
+    req = Request(token, url; kwargs)
+    if !isnothing(parameters)
+        setparameters!(req, parameters)
+    end
+    resp = dorequest(req, skip404 = skip404, verbose = verbose)
+    ret = parseresponse(resp)
+    return ret
+end
+
 function getparameters(request::Request)
     url = request.url
     !occursin(r"\?", url) && return String[]

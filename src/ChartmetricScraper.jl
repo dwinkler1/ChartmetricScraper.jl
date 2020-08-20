@@ -17,7 +17,8 @@ export Token,
     setparameter!,
     writestate,
     readstate!,
-    buildrequesturl
+    buildrequesturl,
+    getparsed
 
 include("token.jl")
 include("request.jl")
