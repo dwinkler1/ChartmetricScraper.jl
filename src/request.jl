@@ -30,6 +30,8 @@ mutable struct Request
 end # struct
 
 Request(refreshtoken::String, url, maxtries = nothing, sleeptime = 600; state = Dict()) = Request(Token(refreshtoken), url, maxtries, sleeptime, state = state)
+Request(token::Token, url; maxtries = nothing, sleeptime = 600, state = Dict()) = Request(token, url, maxtries, sleeptime, state = state)
+Request(refreshtoken::String, url; maxtries = nothing, sleeptime = 600, state = Dict()) = Request(Token(refreshtoken), url, maxtries, sleeptime, state = state)
 
 # Exported
 
