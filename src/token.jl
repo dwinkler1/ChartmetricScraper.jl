@@ -26,15 +26,16 @@ function Token(refreshtoken::String,  maxtries::Int = 5)
 end
 
 """
-    newtoken!(token::Token)
+    newtoken!(token::Token; verbose = false)
 
 Refreshes an existing request `Token`
 
 # Arguments:
 - `token` : the request `Token`
+- `verbose=false` : print a message when a new token is requested
 """
-function newtoken!(token::Token)
-    println("Requesting new Token...")
+function newtoken!(token::Token; verbose = false)
+    verbose && println("Requesting new Token...")
     token_dict, expires = tokenrequest(token.refreshtoken, token.maxtries)
     token.token = token_dict["token"]
     token.expires = expires

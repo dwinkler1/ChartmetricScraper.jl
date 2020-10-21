@@ -164,7 +164,7 @@ function requestprotector(response::HTTP.Messages.Response,
         tokenprotector!(request.token)
     elseif code ∈ 500:599
         sleeptime = request.sleeptime
-        println("Chartmetric server error. Sleeping for $sleeptime seconds")
+        verbose && println("Chartmetric server error. Sleeping for $sleeptime seconds")
         sleep(sleeptime)
     elseif code ∉ 200:399
         ratelimitprotect(response, verbose = verbose)
