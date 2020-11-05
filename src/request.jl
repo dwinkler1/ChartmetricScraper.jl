@@ -85,9 +85,9 @@ Do a full request and return a Dict of the response. Keyword arguments are passe
 - `skip404 = true` : If `true` 404 errors will not be retried
 - `verbose = false` : If `true` all unusual events (e.g. rate limit is hit) will print a message
 """
-function getparsed(token, path, parameters = nothing, skip404 = true, verbose = false; kwargs...)
+function getparsed(token, path, parameters = nothing, skip404 = true, verbose = false; maxtries = 5, sleeptime = 2)
     url = buildrequesturl(path)
-    req = Request(token, url; kwargs)
+    req = Request(token, url; maxtries = maxtries, sleeptime = sleeptime)
     if !isnothing(parameters)
         setparameters!(req, parameters)
     end
