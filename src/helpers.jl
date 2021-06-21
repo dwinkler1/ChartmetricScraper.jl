@@ -3,6 +3,10 @@ function writeresponse(response::HTTP.Messages.Response)
 
 end
 
+function hasvalue(response)
+    return haskey(response, "obj")
+end
+
 function parseresponse(response::HTTP.Messages.Response)
     bod = response.body
     code = response.status
