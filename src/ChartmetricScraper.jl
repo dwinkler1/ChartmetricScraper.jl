@@ -19,7 +19,8 @@ export Token,
     readstate!,
     buildrequesturl,
     getparsed,
-    hasvalue
+    hasvalue,
+    search
 
 include("token.jl")
 include("request.jl")

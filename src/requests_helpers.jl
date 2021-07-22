@@ -1,3 +1,12 @@
+function search(tkn, query; limit = 10, offset = 0, type = "all")
+    @assert type ∈  ["all", "artists", "tracks", "playlists", "curators", "albums", "stations", "cities"]
+    ret = getparsed(tkn, ["search"], ["limit=$limit", "offset=$offset", "type=$type"])
+    if haskey(ret, "obj")
+        return ret["obj"]
+    else
+        return ret
+    end
+end
 
 function albumrequest(token::Token, variable, id, maxtries = 5;
         type=nothing, platform = nothing, status = nothing,
