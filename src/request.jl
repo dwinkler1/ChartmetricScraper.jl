@@ -123,7 +123,7 @@ function setparameters!(request::Request, parameters::Array{String,1}; add::Bool
 end
 
 parsedict(d)=["$k=$v" for (k,v) in d]
-setparameters!(request::Request, parameters::Dict, add::Bool = false) = 
+setparameters!(request::Request, parameters::Dict; add::Bool = false) = 
     setparameters!(request, parsedict(parameters), add)
 
 function setparameter!(request::Request, which::String, value)
