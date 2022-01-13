@@ -1,7 +1,7 @@
 name = "ChartmetricScraper"
 uuid = "77c1d96d-5cb6-4418-b859-b32a1c7d1d5f"
 authors = ["Daniel Winkler <danielw2904@disroot.org>"]
-version = "0.6.0"
+version = "0.6.1"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
